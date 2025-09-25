@@ -15,5 +15,5 @@ public interface ToDoItemService {
 
     String deleteToDoItem(Long id);
 
-    List<ToDoItem> findAllToDoItem();
+    List<ToDoItem> findAllToDoItem(String username);
 }

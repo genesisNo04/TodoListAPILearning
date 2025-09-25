@@ -28,12 +28,7 @@ public class User {
     @Column(name = "email", unique = true)
     private String email;
 
-    @OneToMany(cascade = CascadeType.ALL)
-    @JoinTable(
-            name = "user_todo",
-            joinColumns = @JoinColumn(name = "user_id"),
-            inverseJoinColumns = @JoinColumn(name = "todo_id")
-    )
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<ToDoItem> toDoItemList;
 
     public User(String username, String password, String email, List<ToDoItem> toDoItemList) {

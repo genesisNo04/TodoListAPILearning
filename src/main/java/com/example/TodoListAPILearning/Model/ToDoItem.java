@@ -23,8 +23,13 @@ public class ToDoItem {
     @Column(name = "description")
     private String description;
 
-    public ToDoItem(String title, String description) {
+    @ManyToOne
+    @JoinColumn(name = "user_id")
+    private User user;
+
+    public ToDoItem(String title, String description, User user) {
         this.title = title;
         this.description = description;
+        this.user = user;
     }
 }
