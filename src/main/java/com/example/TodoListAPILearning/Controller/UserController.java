@@ -2,8 +2,8 @@ package com.example.TodoListAPILearning.Controller;
 
 import com.example.TodoListAPILearning.DTO.UserRegisterDTO;
 import com.example.TodoListAPILearning.Exception.ResourceNotFound;
-import com.example.TodoListAPILearning.Model.User;
-import com.example.TodoListAPILearning.Service.UserService;
+import com.example.TodoListAPILearning.Model.AppUser;
+import com.example.TodoListAPILearning.Service.AuthUserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -17,35 +17,35 @@ import org.springframework.web.bind.annotation.RestController;
 public class UserController {
 
     @Autowired
-    private UserService userService;
+    private AuthUserService userService;
 
     @PostMapping("/register")
-    public ResponseEntity<User> registerUser(@RequestBody UserRegisterDTO userRegisterDTO) {
-        User user = new User();
-        user.setEmail(userRegisterDTO.getEmail());
-        user.setPassword(userRegisterDTO.getPassword());
-        user.setUsername(userRegisterDTO.getUsername());
+    public ResponseEntity<AppUser> registerUser(@RequestBody UserRegisterDTO userRegisterDTO) {
+        AppUser appUser = new AppUser();
+        appUser.setEmail(userRegisterDTO.getEmail());
+        appUser.setPassword(userRegisterDTO.getPassword());
+        appUser.setUsername(userRegisterDTO.getUsername());
 
-        userService.registerUser(user);
+        userService.registerUser(appUser);
 
-        return ResponseEntity.status(HttpStatus.CREATED).body(user);
+        return ResponseEntity.status(HttpStatus.CREATED).body(appUser);
     }
 
     @PostMapping("/login")
     public ResponseEntity<String> loginUser(@RequestBody UserRegisterDTO userRegisterDTO) {
-        User user = null;
+        AppUser appUser = null;
 
         try {
-            user = userService.findByUsername(userRegisterDTO.getUsername());
+            appUser = userService.findByUsername(userRegisterDTO.getUsername());
         } catch (ResourceNotFound e) {
             try {
-                user = userService.findByEmail(userRegisterDTO.getEmail());
+                appUser = userService.findByEmail(userRegisterDTO.getEmail());
             } catch (ResourceNotFound ex) {
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Username or password is incorrect");
             }
         }
 
-        if (!userRegisterDTO.getPassword().equals(user.getPassword())) {
+        if (!userRegisterDTO.getPassword().equals(appUser.getPassword())) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid password");
         }
 

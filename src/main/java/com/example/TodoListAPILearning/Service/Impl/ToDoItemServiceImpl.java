@@ -2,15 +2,13 @@ package com.example.TodoListAPILearning.Service.Impl;
 
 import com.example.TodoListAPILearning.Exception.ResourceNotFound;
 import com.example.TodoListAPILearning.Model.ToDoItem;
-import com.example.TodoListAPILearning.Model.User;
 import com.example.TodoListAPILearning.Repository.ToDoItemRepository;
-import com.example.TodoListAPILearning.Repository.UserRepository;
+import com.example.TodoListAPILearning.Repository.AuthUserRepository;
 import com.example.TodoListAPILearning.Service.ToDoItemService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 public class ToDoItemServiceImpl implements ToDoItemService {
@@ -19,7 +17,7 @@ public class ToDoItemServiceImpl implements ToDoItemService {
     private ToDoItemRepository toDoItemRepository;
 
     @Autowired
-    private UserRepository userRepository;
+    private AuthUserRepository userRepository;
 
     @Override
     public ToDoItem findByTitle(String title) {

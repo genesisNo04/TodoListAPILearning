@@ -1,6 +1,5 @@
 package com.example.TodoListAPILearning.DTO;
 
-import com.example.TodoListAPILearning.Model.User;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;

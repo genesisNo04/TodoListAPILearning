@@ -3,9 +3,9 @@ package com.example.TodoListAPILearning.Controller;
 import com.example.TodoListAPILearning.DTO.ToDoItemDTO;
 import com.example.TodoListAPILearning.Exception.ResourceNotFound;
 import com.example.TodoListAPILearning.Model.ToDoItem;
-import com.example.TodoListAPILearning.Model.User;
+import com.example.TodoListAPILearning.Model.AppUser;
 import com.example.TodoListAPILearning.Service.ToDoItemService;
-import com.example.TodoListAPILearning.Service.UserService;
+import com.example.TodoListAPILearning.Service.AuthUserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -21,11 +21,11 @@ public class ToDoItemController {
     private ToDoItemService toDoItemService;
 
     @Autowired
-    private UserService userService;
+    private AuthUserService userService;
 
     @GetMapping
-    public ResponseEntity<List<ToDoItem>> findAllItemByUser(@RequestBody User user) {
-        List<ToDoItem> listToDo = toDoItemService.findAllToDoItem(user.getUsername());
+    public ResponseEntity<List<ToDoItem>> findAllItemByUser(@RequestBody AppUser appUser) {
+        List<ToDoItem> listToDo = toDoItemService.findAllToDoItem(appUser.getUsername());
         return ResponseEntity.status(HttpStatus.FOUND).body(listToDo);
     }
 
@@ -33,11 +33,11 @@ public class ToDoItemController {
     public ResponseEntity<ToDoItem> createToDoItem(@RequestBody ToDoItemDTO toDoItemDTO) {
         ToDoItem newTodoItem = new ToDoItem();
 
-        User user = userService.findByUsername(toDoItemDTO.getUsername());
-        if (user == null) {
+        AppUser appUser = userService.findByUsername(toDoItemDTO.getUsername());
+        if (appUser == null) {
             throw new ResourceNotFound("User does not exist with username: " + toDoItemDTO.getUsername());
         } else {
-            newTodoItem.setUser(user);
+            newTodoItem.setAppUser(appUser);
         }
 
         newTodoItem.setDescription(toDoItemDTO.getDescription());

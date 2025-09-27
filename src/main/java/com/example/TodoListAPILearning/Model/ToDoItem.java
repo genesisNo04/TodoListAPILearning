@@ -1,7 +1,6 @@
 package com.example.TodoListAPILearning.Model;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -24,12 +23,12 @@ public class ToDoItem {
     private String description;
 
     @ManyToOne
-    @JoinColumn(name = "user_id")
-    private User user;
+    @JoinColumn(name = "user_id", insertable = false, updatable = false)
+    private AppUser appUser;
 
-    public ToDoItem(String title, String description, User user) {
+    public ToDoItem(String title, String description, AppUser appUser) {
         this.title = title;
         this.description = description;
-        this.user = user;
+        this.appUser = appUser;
     }
 }
