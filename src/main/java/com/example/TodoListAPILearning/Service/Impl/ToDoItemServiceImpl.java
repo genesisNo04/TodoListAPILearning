@@ -46,10 +46,10 @@ public class ToDoItemServiceImpl implements ToDoItemService {
 
     @Override
     public List<ToDoItem> findAllToDoItem(String username) {
-        if (!userRepository.existsByUsername(username)) {
-            throw new ResourceNotFound("No user with username: " + username);
-        }
-
-        return toDoItemRepository.findByUserUsername(username);
+//        if (!userRepository.existsByUsername(username)) {
+//            throw new ResourceNotFound("No user with username: " + username);
+//        }
+//
+        return List.of(new ToDoItem());
     }
 }

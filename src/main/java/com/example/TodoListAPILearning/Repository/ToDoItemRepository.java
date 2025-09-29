@@ -12,7 +12,7 @@ public interface ToDoItemRepository extends JpaRepository<ToDoItem, Long> {
 
     Optional<ToDoItem> findByTitle(String title);
 
-    List<ToDoItem> findByUserUsername(String username);
+//    List<ToDoItem> findByAppUser(String username);
 
     boolean existsById(Long id);
 }

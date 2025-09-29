@@ -9,5 +9,5 @@ public interface AuthUserService {
 
     AuthUser findByEmail(String email);
 
-    void registerUser(UserRegisterDTO userRegisterDTO);
+    void registerUser(AuthUser authUser);
 }

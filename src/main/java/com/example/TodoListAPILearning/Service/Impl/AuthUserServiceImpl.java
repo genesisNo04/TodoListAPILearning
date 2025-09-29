@@ -7,6 +7,7 @@ import com.example.TodoListAPILearning.Repository.AuthUserRepository;
 import com.example.TodoListAPILearning.Service.AuthUserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -14,6 +15,9 @@ public class AuthUserServiceImpl implements AuthUserService {
 
     @Autowired
     private AuthUserRepository authUserRepository;
+
+    @Autowired
+    private PasswordEncoder passwordEncoder;
 
     @Override
     public AuthUser findByUsername(String username) {
@@ -26,20 +30,16 @@ public class AuthUserServiceImpl implements AuthUserService {
     }
 
     @Override
-    public void registerUser(UserRegisterDTO userRegisterDTO) {
-        if (authUserRepository.existsByUsername(userRegisterDTO.getUsername())) {
-            throw new ResourceNotFound("No user with username: " + userRegisterDTO.getUsername());
+    public void registerUser(AuthUser authUser) {
+        if (authUserRepository.existsByUsername(authUser.getUsername())) {
+            throw new ResourceNotFound("No user with username: " + authUser.getUsername());
         }
 
-        if (authUserRepository.existsByEmail(userRegisterDTO.getEmail())) {
-            throw new ResourceNotFound("Email already registered: " + userRegisterDTO.getEmail());
+        if (authUserRepository.existsByEmail(authUser.getEmail())) {
+            throw new ResourceNotFound("Email already registered: " + authUser.getEmail());
         }
 
-        AuthUser newUser = new AuthUser();
-        newUser.setUsername(userRegisterDTO.getUsername());
-        newUser.setPassword(userRegisterDTO.getPassword());
-        newUser.setEmail(userRegisterDTO.getEmail());
-
-        authUserRepository.save(newUser);
+        authUser.setPassword(passwordEncoder.encode(authUser.getPassword()));
+        authUserRepository.save(authUser);
     }
 }
