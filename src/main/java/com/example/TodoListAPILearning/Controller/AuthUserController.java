@@ -9,6 +9,9 @@ import com.example.TodoListAPILearning.Service.AuthUserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -28,6 +31,9 @@ public class AuthUserController {
     @Autowired
     private JwtUtil jwtUtil;
 
+    @Autowired
+    private AuthenticationManager authenticationManager;
+
     @PostMapping("/register")
     public ResponseEntity<?> registerUser(@RequestBody UserRegisterDTO userRegisterDTO) {
         AuthUser authUser = new AuthUser();
@@ -45,25 +51,13 @@ public class AuthUserController {
 
     @PostMapping("/login")
     public ResponseEntity<?> loginUser(@RequestBody UserRegisterDTO userRegisterDTO) {
-        AuthUser authUser = null;
+        Authentication authentication = authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(userRegisterDTO.getUsername(), userRegisterDTO.getPassword()));
 
-        try {
-            authUser = userService.findByUsername(userRegisterDTO.getUsername());
-        } catch (ResourceNotFound e) {
-            try {
-                authUser = userService.findByEmail(userRegisterDTO.getEmail());
-            } catch (ResourceNotFound ex) {
-                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Username or password is incorrect");
-            }
-        }
+        AuthUser user = (AuthUser) authentication.getPrincipal();
 
-        if (!passwordEncoder.matches(userRegisterDTO.getPassword(), authUser.getPassword())) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid password");
-        }
+        String token = jwtUtil.generateToken(user.getUsername());
 
-        String token = jwtUtil.generateToken(authUser.getUsername());
-
-        UserResponseDTO response = new UserResponseDTO(token, authUser.getUsername(), authUser.getEmail(), authUser.getRole());
+        UserResponseDTO response = new UserResponseDTO(token, user.getUsername(), user.getEmail(), user.getRole());
         return ResponseEntity.ok(response);
     }
 }

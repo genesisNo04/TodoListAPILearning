@@ -1,10 +1,15 @@
 package com.example.TodoListAPILearning.Model;
 
 import jakarta.persistence.*;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.userdetails.UserDetails;
+
+import java.util.Collection;
+import java.util.List;
 
 @Entity
 @Table(name = "auth_user")
-public class AuthUser {
+public class AuthUser implements UserDetails {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -20,6 +25,9 @@ public class AuthUser {
     private String password;
 
     private final String role = "USER";
+
+    @OneToOne(mappedBy = "authUser")
+    private AppUser appUser;
 
     public AuthUser(String username, String email, String password) {
         this.username = username;
@@ -64,5 +72,18 @@ public class AuthUser {
 
     public String getRole() {
         return role;
+    }
+
+    @Override
+    public Collection<? extends GrantedAuthority> getAuthorities() {
+        return List.of(() -> role);
+    }
+
+    public AppUser getAppUser() {
+        return appUser;
+    }
+
+    public void setAppUser(AppUser appUser) {
+        this.appUser = appUser;
     }
 }
