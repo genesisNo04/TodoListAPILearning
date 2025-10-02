@@ -10,4 +10,8 @@ public interface AuthUserService {
     AuthUser findByEmail(String email);
 
     void registerUser(AuthUser authUser);
+
+    boolean existByUsername(String username);
+
+    boolean existByEmail(String email);
 }

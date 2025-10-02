@@ -26,7 +26,7 @@ public class AuthUser implements UserDetails {
 
     private final String role = "USER";
 
-    @OneToOne(mappedBy = "authUser")
+    @OneToOne(mappedBy = "authUser", cascade = CascadeType.ALL)
     private AppUser appUser;
 
     public AuthUser(String username, String email, String password) {

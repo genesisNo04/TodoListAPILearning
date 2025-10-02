@@ -15,7 +15,7 @@ public class AppUser {
     @Column(name = "display_name")
     private String displayName;
 
-    @OneToOne
+    @OneToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "auth_user_id", nullable = false)
     private AuthUser authUser;
 

@@ -1,6 +1,7 @@
 package com.example.TodoListAPILearning.Service.Impl;
 
-import com.example.TodoListAPILearning.Exception.ResourceNotFound;
+import com.example.TodoListAPILearning.Exception.ResourceNotFoundException;
+import com.example.TodoListAPILearning.Model.AppUser;
 import com.example.TodoListAPILearning.Model.ToDoItem;
 import com.example.TodoListAPILearning.Repository.ToDoItemRepository;
 import com.example.TodoListAPILearning.Repository.AuthUserRepository;
@@ -21,12 +22,12 @@ public class ToDoItemServiceImpl implements ToDoItemService {
 
     @Override
     public ToDoItem findByTitle(String title) {
-        return toDoItemRepository.findByTitle(title).orElseThrow(() -> new ResourceNotFound("No to do item with title: " + title));
+        return toDoItemRepository.findByTitle(title).orElseThrow(() -> new ResourceNotFoundException("No to do item with title: " + title));
     }
 
     @Override
     public ToDoItem findById(Long id) {
-        return toDoItemRepository.findById(id).orElseThrow(() -> new ResourceNotFound("No to do item with id: " + id));
+        return toDoItemRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("No to do item with id: " + id));
     }
 
     @Override
@@ -37,7 +38,7 @@ public class ToDoItemServiceImpl implements ToDoItemService {
     @Override
     public String deleteToDoItem(Long id) {
         if (!toDoItemRepository.existsById(id)) {
-            throw new ResourceNotFound("No to do item with id: " + id);
+            throw new ResourceNotFoundException("No to do item with id: " + id);
         }
 
         toDoItemRepository.deleteById(id);
@@ -45,11 +46,12 @@ public class ToDoItemServiceImpl implements ToDoItemService {
     }
 
     @Override
-    public List<ToDoItem> findAllToDoItem(String username) {
-//        if (!userRepository.existsByUsername(username)) {
-//            throw new ResourceNotFound("No user with username: " + username);
-//        }
-//
-        return List.of(new ToDoItem());
+    public List<ToDoItem> findToDoItemByDisplayName(String displayName) {
+        return toDoItemRepository.findByAppUserDisplayName(displayName);
+    }
+
+    @Override
+    public List<ToDoItem> findByAppUser(AppUser appUser) {
+        return toDoItemRepository.findByAppUser(appUser);
     }
 }

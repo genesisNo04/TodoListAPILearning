@@ -1,5 +1,6 @@
 package com.example.TodoListAPILearning.Repository;
 
+import com.example.TodoListAPILearning.Model.AppUser;
 import com.example.TodoListAPILearning.Model.ToDoItem;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
@@ -12,7 +13,10 @@ public interface ToDoItemRepository extends JpaRepository<ToDoItem, Long> {
 
     Optional<ToDoItem> findByTitle(String title);
 
-//    List<ToDoItem> findByAppUser(String username);
+    List<ToDoItem> findByAppUserDisplayName(String username);
 
     boolean existsById(Long id);
+
+    List<ToDoItem> findByAppUser(AppUser appUser);
+
 }

@@ -1,6 +1,7 @@
 package com.example.TodoListAPILearning.Service;
 
 import com.example.TodoListAPILearning.DTO.ToDoItemDTO;
+import com.example.TodoListAPILearning.Model.AppUser;
 import com.example.TodoListAPILearning.Model.ToDoItem;
 
 import java.util.List;
@@ -15,5 +16,7 @@ public interface ToDoItemService {
 
     String deleteToDoItem(Long id);
 
-    List<ToDoItem> findAllToDoItem(String username);
+    List<ToDoItem> findToDoItemByDisplayName(String displayName);
+
+    List<ToDoItem> findByAppUser(AppUser appUser);
 }
