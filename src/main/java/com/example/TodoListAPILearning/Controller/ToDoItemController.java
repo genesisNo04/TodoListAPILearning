@@ -1,6 +1,7 @@
 package com.example.TodoListAPILearning.Controller;
 
 import com.example.TodoListAPILearning.DTO.ToDoItemDTO;
+import com.example.TodoListAPILearning.Exception.AccessDeniedException;
 import com.example.TodoListAPILearning.Exception.ResourceNotFoundException;
 import com.example.TodoListAPILearning.Model.AppUser;
 import com.example.TodoListAPILearning.Model.AuthUser;
@@ -36,27 +37,50 @@ public class ToDoItemController {
         return ResponseEntity.ok(listToDo);
     }
 
-//    @PostMapping
-//    public ResponseEntity<ToDoItem> createToDoItem(@RequestBody ToDoItemDTO toDoItemDTO) {
-//        ToDoItem newTodoItem = new ToDoItem();
-//
-//        AppUser appUser = userService.findByUsername(toDoItemDTO.getUsername());
-//        if (appUser == null) {
-//            throw new ResourceNotFoundException("User does not exist with username: " + toDoItemDTO.getUsername());
-//        } else {
-//            newTodoItem.setAppUser(appUser);
-//        }
-//
-//        newTodoItem.setDescription(toDoItemDTO.getDescription());
-//        newTodoItem.setTitle(toDoItemDTO.getTitle());
-//
-//        ToDoItem savedItem = toDoItemService.saveToDoItem(newTodoItem);
-//        return ResponseEntity.status(HttpStatus.CREATED).body(savedItem);
-//    }
-//
-//    @GetMapping("/{id}")
-//    public ResponseEntity<ToDoItem> findItemById(@PathVariable Long id) {
-//        ToDoItem listToDo = toDoItemService.findById(id);
-//        return ResponseEntity.status(HttpStatus.FOUND).body(listToDo);
-//    }
+    @PostMapping
+    public ResponseEntity<ToDoItem> createToDoItem(@RequestBody ToDoItemDTO toDoItemDTO) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        AuthUser authUser = (AuthUser) authentication.getPrincipal();
+        AppUser appUser = authUser.getAppUser();
+
+        ToDoItem newTodoItem = new ToDoItem();
+        newTodoItem.setDescription(toDoItemDTO.getDescription());
+        newTodoItem.setTitle(toDoItemDTO.getTitle());
+        newTodoItem.setAppUser(appUser);
+
+        ToDoItem savedItem = toDoItemService.saveToDoItem(newTodoItem);
+        return ResponseEntity.status(HttpStatus.CREATED).body(savedItem);
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<String> deleteToDoItem(@PathVariable Long id) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        AuthUser authUser = (AuthUser) authentication.getPrincipal();
+        AppUser appUser = authUser.getAppUser();
+
+        ToDoItem item = toDoItemService.findById(id);
+
+        if (!item.getAppUser().getId().equals(appUser.getId())) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                    .body("You are not allowed to delete this item");
+        }
+
+        toDoItemService.deleteToDoItem(id);
+        return ResponseEntity.noContent().build();
+    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<ToDoItem> findItemById(@PathVariable Long id) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        AuthUser authUser = (AuthUser) authentication.getPrincipal();
+        AppUser appUser = authUser.getAppUser();
+
+        ToDoItem item = toDoItemService.findById(id);
+
+        if (!item.getAppUser().getId().equals(appUser.getId())) {
+            throw new AccessDeniedException("You are not allowed to access this item");
+        }
+
+        return ResponseEntity.ok(item);
+    }
 }

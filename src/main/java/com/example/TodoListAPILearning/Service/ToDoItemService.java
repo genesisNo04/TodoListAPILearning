@@ -19,4 +19,10 @@ public interface ToDoItemService {
     List<ToDoItem> findToDoItemByDisplayName(String displayName);
 
     List<ToDoItem> findByAppUser(AppUser appUser);
+
+    void deleteItemByTitle(String title);
+
+    boolean existByTitle(String title);
+
+    boolean existById(Long id);
 }

@@ -54,4 +54,19 @@ public class ToDoItemServiceImpl implements ToDoItemService {
     public List<ToDoItem> findByAppUser(AppUser appUser) {
         return toDoItemRepository.findByAppUser(appUser);
     }
+
+    @Override
+    public void deleteItemByTitle(String title) {
+        toDoItemRepository.deleteByTitle(title);
+    }
+
+    @Override
+    public boolean existByTitle(String title) {
+        return toDoItemRepository.existsByTitle(title);
+    }
+
+    @Override
+    public boolean existById(Long id) {
+        return toDoItemRepository.existsById(id);
+    }
 }

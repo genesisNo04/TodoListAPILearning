@@ -17,6 +17,10 @@ public interface ToDoItemRepository extends JpaRepository<ToDoItem, Long> {
 
     boolean existsById(Long id);
 
+    boolean existsByTitle(String title);
+
     List<ToDoItem> findByAppUser(AppUser appUser);
+
+    void deleteByTitle(String title);
 
 }
