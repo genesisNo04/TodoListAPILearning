@@ -5,7 +5,9 @@ import com.example.TodoListAPILearning.Model.AppUser;
 import com.example.TodoListAPILearning.Repository.AppUserRepository;
 import com.example.TodoListAPILearning.Service.AppUserService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 
+@Service
 public class AppUserServiceImpl implements AppUserService {
 
     @Autowired
@@ -17,7 +19,7 @@ public class AppUserServiceImpl implements AppUserService {
     }
 
     @Override
-    public AppUser findByUsername(String username) {
-        return appUserRepository.findByUsername(username).orElse(null);
+    public AppUser findByDisplayName(String displayName) {
+        return appUserRepository.findByDisplayName(displayName).orElse(null);
     }
 }

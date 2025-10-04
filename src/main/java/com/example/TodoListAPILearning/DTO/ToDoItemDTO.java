@@ -6,15 +6,12 @@ public class ToDoItemDTO {
 
     private String description;
 
-    private String username;
-
     public ToDoItemDTO() {
     }
 
-    public ToDoItemDTO(String title, String description, String username) {
+    public ToDoItemDTO(String title, String description) {
         this.title = title;
         this.description = description;
-        this.username = username;
     }
 
     public String getTitle() {
@@ -31,13 +28,5 @@ public class ToDoItemDTO {
 
     public void setDescription(String description) {
         this.description = description;
-    }
-
-    public String getUsername() {
-        return username;
-    }
-
-    public void setUsername(String username) {
-        this.username = username;
     }
 }

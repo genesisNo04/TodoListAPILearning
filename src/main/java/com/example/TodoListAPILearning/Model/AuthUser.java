@@ -1,5 +1,6 @@
 package com.example.TodoListAPILearning.Model;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -27,6 +28,7 @@ public class AuthUser implements UserDetails {
     private final String role = "USER";
 
     @OneToOne(mappedBy = "authUser", cascade = CascadeType.ALL)
+    @JsonBackReference
     private AppUser appUser;
 
     public AuthUser(String username, String email, String password) {

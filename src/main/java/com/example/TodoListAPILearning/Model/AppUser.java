@@ -1,5 +1,6 @@
 package com.example.TodoListAPILearning.Model;
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 
 import java.util.List;
@@ -17,6 +18,7 @@ public class AppUser {
 
     @OneToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "auth_user_id", nullable = false)
+    @JsonManagedReference
     private AuthUser authUser;
 
     @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)

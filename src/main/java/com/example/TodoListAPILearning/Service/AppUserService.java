@@ -7,5 +7,5 @@ public interface AppUserService {
 
     AppUser saveAppUser(AppUser appUser);
 
-    AppUser findByUsername(String username);
+    AppUser findByDisplayName(String displayName);
 }

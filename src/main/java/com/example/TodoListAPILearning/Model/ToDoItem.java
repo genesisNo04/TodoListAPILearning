@@ -17,7 +17,7 @@ public class ToDoItem {
     private String description;
 
     @ManyToOne
-    @JoinColumn(name = "user_id", insertable = false, updatable = false)
+    @JoinColumn(name = "user_id")
     private AppUser appUser;
 
     public ToDoItem(String title, String description, AppUser appUser) {
