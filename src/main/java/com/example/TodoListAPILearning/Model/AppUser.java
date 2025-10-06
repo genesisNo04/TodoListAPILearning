@@ -1,5 +1,6 @@
 package com.example.TodoListAPILearning.Model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 
@@ -23,6 +24,7 @@ public class AppUser {
 
     @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
     @JoinColumn(name = "user_id", referencedColumnName = "id")
+    @JsonIgnore
     private List<ToDoItem> toDoItemList;
 
     public AppUser() {

@@ -2,7 +2,6 @@ package com.example.TodoListAPILearning.Controller;
 
 import com.example.TodoListAPILearning.DTO.ToDoItemDTO;
 import com.example.TodoListAPILearning.Exception.AccessDeniedException;
-import com.example.TodoListAPILearning.Exception.ResourceNotFoundException;
 import com.example.TodoListAPILearning.Model.AppUser;
 import com.example.TodoListAPILearning.Model.AuthUser;
 import com.example.TodoListAPILearning.Model.ToDoItem;
@@ -82,5 +81,25 @@ public class ToDoItemController {
         }
 
         return ResponseEntity.ok(item);
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<?> updateToDoItem(@PathVariable Long id, @RequestBody ToDoItemDTO toDoItemDTO) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        AuthUser authUser = (AuthUser) authentication.getPrincipal();
+        AppUser appUser = authUser.getAppUser();
+
+        ToDoItem item = toDoItemService.findById(id);
+
+        if (!item.getAppUser().getId().equals(appUser.getId())) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                    .body("You are not allowed to update this item");
+        }
+
+        item.setTitle(toDoItemDTO.getTitle());
+        item.setDescription(toDoItemDTO.getDescription());
+
+        ToDoItem savedItem = toDoItemService.saveToDoItem(item);
+        return ResponseEntity.ok(savedItem);
     }
 }
