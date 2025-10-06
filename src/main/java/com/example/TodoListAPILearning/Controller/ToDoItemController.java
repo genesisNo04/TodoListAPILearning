@@ -29,6 +29,7 @@ public class ToDoItemController {
     @GetMapping
     public ResponseEntity<List<ToDoItem>> findAllItemByUser() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+
         AuthUser authUser = (AuthUser) authentication.getPrincipal();
         AppUser appUser = authUser.getAppUser();
 
@@ -37,8 +38,9 @@ public class ToDoItemController {
     }
 
     @PostMapping
-    public ResponseEntity<ToDoItem> createToDoItem(@RequestBody ToDoItemDTO toDoItemDTO) {
+    public ResponseEntity<ToDoItemDTO> createToDoItem(@RequestBody ToDoItemDTO toDoItemDTO) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+
         AuthUser authUser = (AuthUser) authentication.getPrincipal();
         AppUser appUser = authUser.getAppUser();
 
@@ -48,20 +50,20 @@ public class ToDoItemController {
         newTodoItem.setAppUser(appUser);
 
         ToDoItem savedItem = toDoItemService.saveToDoItem(newTodoItem);
-        return ResponseEntity.status(HttpStatus.CREATED).body(savedItem);
+        return ResponseEntity.status(HttpStatus.CREATED).body(toDoItemDTO);
     }
 
     @DeleteMapping("/{id}")
     public ResponseEntity<String> deleteToDoItem(@PathVariable Long id) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+
         AuthUser authUser = (AuthUser) authentication.getPrincipal();
         AppUser appUser = authUser.getAppUser();
 
         ToDoItem item = toDoItemService.findById(id);
 
         if (!item.getAppUser().getId().equals(appUser.getId())) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN)
-                    .body("You are not allowed to delete this item");
+            throw new AccessDeniedException("Forbidden");
         }
 
         toDoItemService.deleteToDoItem(id);
@@ -71,13 +73,14 @@ public class ToDoItemController {
     @GetMapping("/{id}")
     public ResponseEntity<ToDoItem> findItemById(@PathVariable Long id) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+
         AuthUser authUser = (AuthUser) authentication.getPrincipal();
         AppUser appUser = authUser.getAppUser();
 
         ToDoItem item = toDoItemService.findById(id);
 
         if (!item.getAppUser().getId().equals(appUser.getId())) {
-            throw new AccessDeniedException("You are not allowed to access this item");
+            throw new AccessDeniedException("Forbidden");
         }
 
         return ResponseEntity.ok(item);
@@ -86,20 +89,20 @@ public class ToDoItemController {
     @PutMapping("/{id}")
     public ResponseEntity<?> updateToDoItem(@PathVariable Long id, @RequestBody ToDoItemDTO toDoItemDTO) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+
         AuthUser authUser = (AuthUser) authentication.getPrincipal();
         AppUser appUser = authUser.getAppUser();
 
         ToDoItem item = toDoItemService.findById(id);
 
         if (!item.getAppUser().getId().equals(appUser.getId())) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN)
-                    .body("You are not allowed to update this item");
+            throw new AccessDeniedException("Forbidden");
         }
 
         item.setTitle(toDoItemDTO.getTitle());
         item.setDescription(toDoItemDTO.getDescription());
 
         ToDoItem savedItem = toDoItemService.saveToDoItem(item);
-        return ResponseEntity.ok(savedItem);
+        return ResponseEntity.ok(toDoItemDTO);
     }
 }

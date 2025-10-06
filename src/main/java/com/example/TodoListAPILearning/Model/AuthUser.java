@@ -1,6 +1,7 @@
 package com.example.TodoListAPILearning.Model;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -10,6 +11,13 @@ import java.util.List;
 
 @Entity
 @Table(name = "auth_user")
+@JsonIgnoreProperties({
+        "password",
+        "accountNonExpired",
+        "accountNonLocked",
+        "credentialsNonExpired",
+        "enabled",
+})
 public class AuthUser implements UserDetails {
 
     @Id

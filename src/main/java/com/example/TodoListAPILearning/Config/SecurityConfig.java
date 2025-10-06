@@ -1,5 +1,8 @@
 package com.example.TodoListAPILearning.Config;
 
+import com.example.TodoListAPILearning.Exception.AccessDeniedException;
+import com.example.TodoListAPILearning.Exception.CustomAccessDeniedHandler;
+import com.example.TodoListAPILearning.Exception.CustomAuthenticationEntryPoint;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -34,6 +37,9 @@ public class SecurityConfig {
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 //this determines the order of the filter, run jwtAuthenticationFilter before UsernamePasswordAuthenticationFilter
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
+                .exceptionHandling(ex -> ex
+                        .authenticationEntryPoint(new CustomAuthenticationEntryPoint())
+                        .accessDeniedHandler(new CustomAccessDeniedHandler()))
                 .build();
     }
 

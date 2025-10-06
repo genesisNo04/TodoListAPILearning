@@ -66,7 +66,7 @@ public class AuthUserController {
         appUserService.saveAppUser(appUser);
 
         String token = jwtUtil.generateToken(authUser.getUsername());
-        UserResponseDTO userResponseDTO = new UserResponseDTO(token, authUser.getUsername(), authUser.getEmail(), authUser.getRole());
+        UserResponseDTO userResponseDTO = new UserResponseDTO(token);
 
         return ResponseEntity.status(HttpStatus.CREATED).body(userResponseDTO);
     }
@@ -79,7 +79,7 @@ public class AuthUserController {
 
         String token = jwtUtil.generateToken(user.getUsername());
 
-        UserResponseDTO response = new UserResponseDTO(token, user.getUsername(), user.getEmail(), user.getRole());
+        UserResponseDTO response = new UserResponseDTO(token);
         return ResponseEntity.ok(response);
     }
 }
