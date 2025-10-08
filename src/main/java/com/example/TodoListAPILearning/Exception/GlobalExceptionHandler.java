@@ -32,4 +32,11 @@ public class GlobalExceptionHandler {
     public ResponseEntity<String> handleGenericException(Exception ex) {
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Something went wrong");
     }
+
+    @ExceptionHandler(IllegalArgumentException.class)
+    public ResponseEntity<Map<String, String>> handleIllegalArgumentException(Exception ex) {
+        Map<String, String> response = new HashMap<>();
+        response.put("error", "Invalid sort field");
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+    }
 }

@@ -3,6 +3,7 @@ package com.example.TodoListAPILearning.Service;
 import com.example.TodoListAPILearning.DTO.ToDoItemDTO;
 import com.example.TodoListAPILearning.Model.AppUser;
 import com.example.TodoListAPILearning.Model.ToDoItem;
+import org.springframework.data.domain.Page;
 
 import java.util.List;
 
@@ -25,4 +26,7 @@ public interface ToDoItemService {
     boolean existByTitle(String title);
 
     boolean existById(Long id);
+
+    //new method to add pagination
+    Page<ToDoItem> findToDoItemByDisplayNameWithPagination(String displayName, int page, int limit, String sortCriteria, boolean asc);
 }

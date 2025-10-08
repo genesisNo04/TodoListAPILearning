@@ -1,5 +1,6 @@
 package com.example.TodoListAPILearning.Controller;
 
+import com.example.TodoListAPILearning.DTO.PaginatedResponse;
 import com.example.TodoListAPILearning.DTO.ToDoItemDTO;
 import com.example.TodoListAPILearning.Exception.AccessDeniedException;
 import com.example.TodoListAPILearning.Model.AppUser;
@@ -8,6 +9,7 @@ import com.example.TodoListAPILearning.Model.ToDoItem;
 import com.example.TodoListAPILearning.Service.AuthUserService;
 import com.example.TodoListAPILearning.Service.ToDoItemService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -27,14 +29,25 @@ public class ToDoItemController {
     private AuthUserService userService;
 
     @GetMapping
-    public ResponseEntity<List<ToDoItem>> findAllItemByUser() {
+    public ResponseEntity<PaginatedResponse<ToDoItem>> findAllItemByUser(@RequestParam(defaultValue = "1") int page, @RequestParam(defaultValue = "10") int limit, @RequestParam(defaultValue = "id") String sortType, @RequestParam(defaultValue = "true") boolean asc) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-
         AuthUser authUser = (AuthUser) authentication.getPrincipal();
         AppUser appUser = authUser.getAppUser();
 
-        List<ToDoItem> listToDo = toDoItemService.findToDoItemByDisplayName(appUser.getDisplayName());
-        return ResponseEntity.ok(listToDo);
+        List<String> allowedSortFields = List.of("id", "title", "description");
+        if (!allowedSortFields.contains(sortType)) {
+            throw new IllegalArgumentException("Invalid sort field: " + sortType);
+        }
+
+        Page<ToDoItem> todoPage = toDoItemService.findToDoItemByDisplayNameWithPagination(appUser.getDisplayName(), page, limit, sortType, asc);
+        PaginatedResponse<ToDoItem> response = new PaginatedResponse<>(
+                todoPage.getContent(),
+                todoPage.getNumber() + 1,
+                todoPage.getSize(),
+                todoPage.getTotalElements()
+        );
+
+        return ResponseEntity.ok(response);
     }
 
     @PostMapping
