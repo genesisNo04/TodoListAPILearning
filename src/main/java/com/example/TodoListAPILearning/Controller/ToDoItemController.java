@@ -29,7 +29,12 @@ public class ToDoItemController {
     private AuthUserService userService;
 
     @GetMapping
-    public ResponseEntity<PaginatedResponse<ToDoItem>> findAllItemByUser(@RequestParam(defaultValue = "1") int page, @RequestParam(defaultValue = "10") int limit, @RequestParam(defaultValue = "id") String sortType, @RequestParam(defaultValue = "true") boolean asc) {
+    public ResponseEntity<PaginatedResponse<ToDoItem>> findAllItemByUser(@RequestParam(defaultValue = "1") int page,
+                                                                         @RequestParam(defaultValue = "10") int limit,
+                                                                         @RequestParam(defaultValue = "id") String sortType,
+                                                                         @RequestParam(defaultValue = "true") boolean asc,
+                                                                         @RequestParam(required = false) String title,
+                                                                         @RequestParam(required = false) String description) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         AuthUser authUser = (AuthUser) authentication.getPrincipal();
         AppUser appUser = authUser.getAppUser();
@@ -39,7 +44,7 @@ public class ToDoItemController {
             throw new IllegalArgumentException("Invalid sort field: " + sortType);
         }
 
-        Page<ToDoItem> todoPage = toDoItemService.findToDoItemByDisplayNameWithPagination(appUser.getDisplayName(), page, limit, sortType, asc);
+        Page<ToDoItem> todoPage = toDoItemService.findToDoItemByFilters(appUser.getDisplayName(), page, limit, sortType, asc, title, description);
         PaginatedResponse<ToDoItem> response = new PaginatedResponse<>(
                 todoPage.getContent(),
                 todoPage.getNumber() + 1,

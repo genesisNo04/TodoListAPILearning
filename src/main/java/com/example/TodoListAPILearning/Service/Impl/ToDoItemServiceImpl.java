@@ -102,4 +102,13 @@ public class ToDoItemServiceImpl implements ToDoItemService {
     public List<ToDoItem> findToDoItemByDisplayName(String displayName) {
         return toDoItemRepository.findByAppUserDisplayName(displayName);
     }
+
+
+    @Override
+    public Page<ToDoItem> findToDoItemByFilters(String displayName, int page, int limit, String sortType, boolean asc, String title, String description) {
+        Sort sort = asc ? Sort.by(sortType).ascending() : Sort.by(sortType).descending();
+        Pageable pageable = PageRequest.of(page - 1, limit, sort);
+
+        return toDoItemRepository.findByFilters(displayName, title, description, pageable);
+    }
 }
