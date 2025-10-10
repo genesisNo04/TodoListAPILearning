@@ -13,11 +13,18 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.context.SecurityContext;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.security.test.context.support.WithMockUser;
+
+import java.util.List;
 
 import static org.mockito.Mockito.when;
 import static org.mockito.ArgumentMatchers.any;
@@ -25,6 +32,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @WebMvcTest(ToDoItemController.class)
+@AutoConfigureMockMvc(addFilters = false)
 public class ToDoItemControllerTest {
 
     @Autowired
@@ -46,20 +54,26 @@ public class ToDoItemControllerTest {
     private AppUser appUser;
 
     @BeforeEach
-    void setUp() {
+    void setUp() throws Exception {
+
         appUser = new AppUser();
         appUser.setId(1L);
         appUser.setDisplayName("testUser");
 
         authUser = new AuthUser();
         authUser.setAppUser(appUser);
+
+        UsernamePasswordAuthenticationToken authentication =
+                new UsernamePasswordAuthenticationToken(authUser, null, List.of());
+        SecurityContext securityContext = SecurityContextHolder.createEmptyContext();
+        securityContext.setAuthentication(authentication);
+        SecurityContextHolder.setContext(securityContext);
     }
 
     @Test
-    @WithMockUser
     void testCreateTodoItem() throws Exception {
         ToDoItemDTO dto = new ToDoItemDTO();
-        dto.setTitle("Test title");
+        dto.setTitle("Test Title");
         dto.setDescription("Test description");
 
         ToDoItem savedItem = new ToDoItem();
@@ -70,7 +84,11 @@ public class ToDoItemControllerTest {
 
         when(toDoItemService.saveToDoItem(any(ToDoItem.class))).thenReturn(savedItem);
 
+        UsernamePasswordAuthenticationToken authToken =
+                new UsernamePasswordAuthenticationToken(authUser, null, List.of());
+
         mockMvc.perform(post("/v1/todoitem")
+                        .with(SecurityMockMvcRequestPostProcessors.authentication(authToken))
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(new ObjectMapper().writeValueAsString(dto)))
                 .andExpect(status().isCreated())
@@ -79,5 +97,28 @@ public class ToDoItemControllerTest {
 
     }
 
-    // now you can write @Test methods here
+    @Test
+    void testRetrieveToDoItem() throws Exception {
+        ToDoItemDTO dto = new ToDoItemDTO();
+        dto.setTitle("Test retrieve");
+        dto.setDescription("Test getting this item");
+
+        ToDoItem savedItem = new ToDoItem();
+        savedItem.setId(1L);
+        savedItem.setTitle(dto.getTitle());
+        savedItem.setDescription(dto.getDescription());
+        savedItem.setAppUser(appUser);
+
+        UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(authUser, null, List.of());
+
+        when(toDoItemService.findById(1L)).thenReturn(savedItem);
+
+        mockMvc.perform(get("/v1/todoitem/1")
+                .with(SecurityMockMvcRequestPostProcessors.authentication(authenticationToken))
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(new ObjectMapper().writeValueAsString(dto)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.title").value("Test retrieve"))
+                .andExpect(jsonPath("$.description").value("Test getting this item"));
+    }
 }
