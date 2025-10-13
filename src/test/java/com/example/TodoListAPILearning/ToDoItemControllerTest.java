@@ -31,13 +31,22 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
+//Lightway spring context containing only web layer(controllers, filter, JSON converters)
+//no real db, no services unless MockBean them
+//Use for controller testing
 @WebMvcTest(ToDoItemController.class)
+//Provide mockMVC instance for testing HTTP request without real server
+//disable spring security filters
 @AutoConfigureMockMvc(addFilters = false)
 public class ToDoItemControllerTest {
 
+    //Tell spring to replace real bean with a mockito mock in test context
+    //Simulate HTTP request without a server
     @Autowired
     private MockMvc mockMvc;
 
+    //Mock all this to control behavior
+    //Don't touch database
     @MockBean
     private ToDoItemService toDoItemService;
 
@@ -63,8 +72,15 @@ public class ToDoItemControllerTest {
         authUser = new AuthUser();
         authUser.setAppUser(appUser);
 
+        //Inject user into spring security context
+        //UsernamePasswordAuthenticationToken represent user authentication request or authenticated identity
+        //1st param: principle: the user identity (who they are), usually user detail or custom user class
+        //2nd param: credentials: password or token
+        //3rd param: roles, permission granted to user
+        //bellow mean create a fake authentication obj for user represented by authUser. Already authenticated, no specific role or authorities
         UsernamePasswordAuthenticationToken authentication =
                 new UsernamePasswordAuthenticationToken(authUser, null, List.of());
+        //Create an empty Security Context
         SecurityContext securityContext = SecurityContextHolder.createEmptyContext();
         securityContext.setAuthentication(authentication);
         SecurityContextHolder.setContext(securityContext);
