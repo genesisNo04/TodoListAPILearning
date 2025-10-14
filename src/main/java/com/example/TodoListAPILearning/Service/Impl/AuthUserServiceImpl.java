@@ -1,5 +1,6 @@
 package com.example.TodoListAPILearning.Service.Impl;
 
+import com.example.TodoListAPILearning.Exception.ResourceAlreadyExistException;
 import com.example.TodoListAPILearning.Exception.ResourceNotFoundException;
 import com.example.TodoListAPILearning.Model.AuthUser;
 import com.example.TodoListAPILearning.Repository.AuthUserRepository;
@@ -30,11 +31,11 @@ public class AuthUserServiceImpl implements AuthUserService {
     @Override
     public void registerUser(AuthUser authUser) {
         if (authUserRepository.existsByUsername(authUser.getUsername())) {
-            throw new ResourceNotFoundException("No user with username: " + authUser.getUsername());
+            throw new ResourceAlreadyExistException("User with username: " + authUser.getUsername() + " already exist");
         }
 
         if (authUserRepository.existsByEmail(authUser.getEmail())) {
-            throw new ResourceNotFoundException("Email already registered: " + authUser.getEmail());
+            throw new ResourceAlreadyExistException("Email already registered: " + authUser.getEmail());
         }
 
         authUser.setPassword(passwordEncoder.encode(authUser.getPassword()));
