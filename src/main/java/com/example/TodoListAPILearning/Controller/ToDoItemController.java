@@ -10,6 +10,7 @@ import com.example.TodoListAPILearning.Model.ToDoItem;
 import com.example.TodoListAPILearning.Service.AuthUserService;
 import com.example.TodoListAPILearning.Service.ToDoItemService;
 import io.github.bucket4j.Bucket;
+import jakarta.persistence.Convert;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
@@ -48,13 +49,39 @@ public class ToDoItemController {
 
         //Create the bucket for user if not already
         //If yes return the current bucket
+        //Still need this for throttling
         Bucket bucket = rateLimitService.resolveBucket(userKey);
-        //Try to consume 1 token from bucket
-        //Return true if there is token and reduce the token number
-        //Return false if no token left
-        if (!bucket.tryConsume(1)) {
-            return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS).body(null);
+        //Attempt to consume 1 token from bucket and get ConsumptionProbe back
+        //probe contain: probe.isConsumed() - true if token is consumed
+        //probe.getRemainingTokens(): how many tokens remain after consuming
+        //probe.getNanosToWaitForRefill(): if consumption failed, how many nano seconds until a token will be available
+        var probe = bucket.tryConsumeAndReturnRemaining(1);
+
+        //if condition is false, no token is available
+        if (!probe.isConsumed()) {
+            //Read how many nanoseconds the bucket says must pass until a token is available (Bucket4j calculate this)
+            long waitNanos = probe.getNanosToWaitForRefill();
+            //Convert nanoseconds to milliseconds because thread.sleep accept milli
+            long waitMillies = waitNanos / 1_000_000;
+
+            try {
+                //Pause the current thread for milli time so that by the time you continue, the bucket should have enough time to refill
+                //After wakingg, the handler continues and proceeds to proccess the request normally
+                Thread.sleep(waitMillies); //throttle instead of reject
+            } catch (InterruptedException e) {
+                //If thread is interrupted while sleeping return 500
+                Thread.currentThread().interrupt();
+                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
+            }
         }
+          //This below is simple rate limiting, if there is no token left, just block out
+          //When we implement throttling we will not need it anymore
+//        //Try to consume 1 token from bucket
+//        //Return true if there is token and reduce the token number
+//        //Return false if no token left
+//        if (!bucket.tryConsume(1)) {
+//            return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS).body(null);
+//        }
 
         List<String> allowedSortFields = List.of("id", "title", "description");
         if (!allowedSortFields.contains(sortType)) {

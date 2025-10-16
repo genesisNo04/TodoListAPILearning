@@ -1,13 +1,17 @@
 package com.example.TodoListAPILearning.Controller;
 
 import com.example.TodoListAPILearning.Config.JwtUtil;
+import com.example.TodoListAPILearning.DTO.AuthResponseDTO;
+import com.example.TodoListAPILearning.DTO.RefreshTokenDTO;
 import com.example.TodoListAPILearning.DTO.UserResponseDTO;
 import com.example.TodoListAPILearning.DTO.UserRegisterDTO;
 import com.example.TodoListAPILearning.Exception.ResourceAlreadyExistException;
 import com.example.TodoListAPILearning.Model.AppUser;
 import com.example.TodoListAPILearning.Model.AuthUser;
+import com.example.TodoListAPILearning.Model.RefreshToken;
 import com.example.TodoListAPILearning.Service.AppUserService;
 import com.example.TodoListAPILearning.Service.AuthUserService;
+import com.example.TodoListAPILearning.Service.Impl.RefreshTokenService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -41,6 +45,9 @@ public class AuthUserController {
     @Autowired
     private AuthenticationManager authenticationManager;
 
+    @Autowired
+    private RefreshTokenService refreshTokenService;
+
     @PostMapping("/register")
     public ResponseEntity<?> registerUser(@RequestBody UserRegisterDTO userRegisterDTO) {
         if (userService.existByUsername(userRegisterDTO.getUsername())) {
@@ -66,9 +73,10 @@ public class AuthUserController {
         appUserService.saveAppUser(appUser);
 
         String token = jwtUtil.generateToken(authUser.getUsername());
-        UserResponseDTO userResponseDTO = new UserResponseDTO(token);
+        RefreshToken refreshToken = refreshTokenService.createRefreshToken(appUser);
+        AuthResponseDTO authResponseDTO = new AuthResponseDTO(token, refreshToken.getToken());
 
-        return ResponseEntity.status(HttpStatus.CREATED).body(userResponseDTO);
+        return ResponseEntity.status(HttpStatus.CREATED).body(authResponseDTO);
     }
 
     @PostMapping("/login")
@@ -77,9 +85,25 @@ public class AuthUserController {
 
         AuthUser user = (AuthUser) authentication.getPrincipal();
 
-        String token = jwtUtil.generateToken(user.getUsername());
+        String accessToken = jwtUtil.generateToken(user.getUsername());
+        RefreshToken refreshToken = refreshTokenService.createRefreshToken(user.getAppUser());
 
-        UserResponseDTO response = new UserResponseDTO(token);
-        return ResponseEntity.ok(response);
+        AuthResponseDTO authResponseDTO = new AuthResponseDTO(accessToken, refreshToken.getToken());
+        return ResponseEntity.ok(authResponseDTO);
+    }
+
+    @PostMapping("/refresh")
+    public ResponseEntity<AuthResponseDTO> refreshToken(@RequestBody RefreshTokenDTO request) {
+        String requestToken = request.getRefreshToken();
+
+        RefreshToken refreshToken = refreshTokenService.findByToken(requestToken)
+                .orElseThrow(() -> new RuntimeException("Refresh token not found. Please login again"));
+
+        refreshTokenService.verifyExpiration(refreshToken);
+
+        AppUser user = refreshToken.getUser();
+        String newAccessToken = jwtUtil.generateToken(user.getDisplayName());
+
+        return ResponseEntity.ok(new AuthResponseDTO(newAccessToken, refreshToken.getToken()));
     }
 }
