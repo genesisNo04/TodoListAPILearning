@@ -1,5 +1,6 @@
 package com.example.TodoListAPILearning.Controller;
 
+import com.example.TodoListAPILearning.Component.RateLimitService;
 import com.example.TodoListAPILearning.DTO.PaginatedResponse;
 import com.example.TodoListAPILearning.DTO.ToDoItemDTO;
 import com.example.TodoListAPILearning.Exception.AccessDeniedException;
@@ -8,6 +9,7 @@ import com.example.TodoListAPILearning.Model.AuthUser;
 import com.example.TodoListAPILearning.Model.ToDoItem;
 import com.example.TodoListAPILearning.Service.AuthUserService;
 import com.example.TodoListAPILearning.Service.ToDoItemService;
+import io.github.bucket4j.Bucket;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
@@ -28,6 +30,9 @@ public class ToDoItemController {
     @Autowired
     private AuthUserService userService;
 
+    @Autowired
+    private RateLimitService rateLimitService;
+
     @GetMapping
     public ResponseEntity<PaginatedResponse<ToDoItem>> findAllItemByUser(@RequestParam(defaultValue = "1") int page,
                                                                          @RequestParam(defaultValue = "10") int limit,
@@ -38,6 +43,18 @@ public class ToDoItemController {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         AuthUser authUser = (AuthUser) authentication.getPrincipal();
         AppUser appUser = authUser.getAppUser();
+
+        String userKey = String.valueOf(authUser.getAppUser().getId());
+
+        //Create the bucket for user if not already
+        //If yes return the current bucket
+        Bucket bucket = rateLimitService.resolveBucket(userKey);
+        //Try to consume 1 token from bucket
+        //Return true if there is token and reduce the token number
+        //Return false if no token left
+        if (!bucket.tryConsume(1)) {
+            return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS).body(null);
+        }
 
         List<String> allowedSortFields = List.of("id", "title", "description");
         if (!allowedSortFields.contains(sortType)) {

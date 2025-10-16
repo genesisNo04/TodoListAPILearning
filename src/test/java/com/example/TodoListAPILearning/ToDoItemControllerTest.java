@@ -1,5 +1,6 @@
 package com.example.TodoListAPILearning;
 
+import com.example.TodoListAPILearning.Component.RateLimitService;
 import com.example.TodoListAPILearning.Config.JwtAuthenticationFilter;
 import com.example.TodoListAPILearning.Config.JwtUtil;
 import com.example.TodoListAPILearning.Controller.ToDoItemController;
@@ -10,6 +11,9 @@ import com.example.TodoListAPILearning.Model.ToDoItem;
 import com.example.TodoListAPILearning.Service.AuthUserService;
 import com.example.TodoListAPILearning.Service.ToDoItemService;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.github.bucket4j.Bandwidth;
+import io.github.bucket4j.Bucket;
+import io.github.bucket4j.Refill;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,8 +30,9 @@ import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.security.test.context.support.WithMockUser;
+import static org.mockito.Mockito.verify;
 
+import java.time.Duration;
 import java.util.List;
 
 import static org.mockito.ArgumentMatchers.*;
@@ -62,6 +67,9 @@ public class ToDoItemControllerTest {
 
     @MockBean
     private JwtUtil jwtUtil;
+
+    @MockBean
+    private RateLimitService rateLimitService;
 
     private AuthUser authUser;
     private AppUser appUser;
@@ -216,10 +224,22 @@ public class ToDoItemControllerTest {
         AuthUser invalidAuthUser = new AuthUser();
         invalidAuthUser.setId(99L);
         invalidAuthUser.setAppUser(anotherUser);
-        invalidAuthUser.setUsername("wrongUser"); // if AuthUser has username field
+        invalidAuthUser.setUsername("wrongUser");
+
+        Pageable pageable = PageRequest.of(0, 10);
+        Page<ToDoItem> page = new PageImpl<>(List.of(), pageable, 0);
+
+        when(toDoItemService.findToDoItemByFilters(
+                anyString(), anyInt(), anyInt(),
+                anyString(), anyBoolean(), any(), any()
+        )).thenReturn(page);
 
         UsernamePasswordAuthenticationToken authenticationToken =
                 new UsernamePasswordAuthenticationToken(invalidAuthUser, null, List.of());
+
+        SecurityContext context = SecurityContextHolder.createEmptyContext();
+        context.setAuthentication(authenticationToken);
+        SecurityContextHolder.setContext(context);
 
         mockMvc.perform(get("/v1/todoitem")
                         .with(SecurityMockMvcRequestPostProcessors.authentication(authenticationToken))
@@ -227,5 +247,76 @@ public class ToDoItemControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data").isEmpty())
                 .andExpect(jsonPath("$.total").value(0));
+    }
+
+    @Test
+    void testRetrieveToDoItem_ShouldReturnEmptyListForOtherUser() throws Exception {
+        // --- Arrange ---
+        // Simulate existing todos for userA
+        AppUser userA = new AppUser();
+        userA.setId(1L);
+        userA.setDisplayName("userA");
+
+        ToDoItem userATodo = new ToDoItem();
+        userATodo.setId(1L);
+        userATodo.setTitle("UserA Todo");
+        userATodo.setDescription("UserA Description");
+        userATodo.setAppUser(userA);
+
+        // Now simulate another user (userB) trying to access userA's data
+        AppUser userB = new AppUser();
+        userB.setId(2L);
+        userB.setDisplayName("userB");
+
+        AuthUser authUserB = new AuthUser();
+        authUserB.setId(2L);
+        authUserB.setAppUser(userB);
+        authUserB.setUsername("userB");
+
+        Pageable pageable = PageRequest.of(0, 10);
+
+        // Simulate that the service returns an empty page when userB queries
+        Page<ToDoItem> emptyPage = new PageImpl<>(List.of(), pageable, 0);
+
+        Bucket alwaysAvailableBucket = Bucket.builder()
+                .addLimit(Bandwidth.classic(1000, Refill.greedy(1000, Duration.ofMinutes(1))))
+                .build();
+        when(rateLimitService.resolveBucket(anyString())).thenReturn(alwaysAvailableBucket);
+
+        when(toDoItemService.findToDoItemByFilters(
+                eq("userB"), // only todo items belonging to userB
+                eq(1),
+                eq(10),
+                eq("id"),
+                eq(true),
+                isNull(),
+                isNull()
+        )).thenReturn(emptyPage);
+
+        // Inject userB as the authenticated user
+        UsernamePasswordAuthenticationToken authToken =
+                new UsernamePasswordAuthenticationToken(authUserB, null, List.of());
+        SecurityContext context = SecurityContextHolder.createEmptyContext();
+        context.setAuthentication(authToken);
+        SecurityContextHolder.setContext(context);
+
+        // --- Act & Assert ---
+        mockMvc.perform(get("/v1/todoitem")
+                        .with(SecurityMockMvcRequestPostProcessors.authentication(authToken))
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data").isEmpty())
+                .andExpect(jsonPath("$.total").value(0));
+
+        // Also verify the service was called with the current user's name
+        verify(toDoItemService).findToDoItemByFilters(
+                eq("userB"),
+                eq(1),
+                eq(10),
+                eq("id"),
+                eq(true),
+                isNull(),
+                isNull()
+        );
     }
 }
