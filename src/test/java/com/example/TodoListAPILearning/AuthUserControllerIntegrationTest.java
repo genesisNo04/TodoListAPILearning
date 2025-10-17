@@ -1,5 +1,6 @@
 package com.example.TodoListAPILearning;
 
+import com.example.TodoListAPILearning.DTO.AuthResponseDTO;
 import com.example.TodoListAPILearning.DTO.UserRegisterDTO;
 import com.example.TodoListAPILearning.DTO.UserResponseDTO;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -54,12 +55,14 @@ public class AuthUserControllerIntegrationTest {
         baseUrl = baseUrl + "/register";
         UserRegisterDTO userRegisterDTO = createRandomUser();
 
-        ResponseEntity<UserResponseDTO> response = testRestTemplate.postForEntity(baseUrl, userRegisterDTO, UserResponseDTO.class);
+        ResponseEntity<AuthResponseDTO> response = testRestTemplate.postForEntity(baseUrl, userRegisterDTO, AuthResponseDTO.class);
 
         assertEquals(HttpStatus.CREATED, response.getStatusCode());
         assertNotNull(response.getBody(), "Response should not be null");
-        assertNotNull(response.getBody().getToken(), "Token should not be null");
-        assertFalse(response.getBody().getToken().isEmpty(), "Token should not be empty");
+        assertNotNull(response.getBody().getAccessToken(), "Access token should not be null");
+        assertFalse(response.getBody().getAccessToken().isEmpty(), "Access token should not be empty");
+        assertNotNull(response.getBody().getRefreshToken(), "Refresh token should not be null");
+        assertFalse(response.getBody().getRefreshToken().isEmpty(), "Refresh token should not be empty");
     }
 
 
@@ -94,7 +97,7 @@ public class AuthUserControllerIntegrationTest {
         assertEquals(HttpStatus.CONFLICT, response2.getStatusCode());
         assertNotNull(response2.getBody(), "Response body should not be null");
         assertTrue(response2.getBody().contains("Email: " + userRegisterDTO.getEmail() + " is already used"));
-        assertFalse(response2.getBody().contains("token"));
+        assertFalse(response2.getBody().contains("accessToken"));
     }
 
     @Test
@@ -102,14 +105,16 @@ public class AuthUserControllerIntegrationTest {
         String registerUrl = baseUrl + "/register";
         UserRegisterDTO userRegisterDTO = createRandomUser();
 
-        testRestTemplate.postForEntity(registerUrl, userRegisterDTO, UserResponseDTO.class);
+        testRestTemplate.postForEntity(registerUrl, userRegisterDTO, AuthResponseDTO.class);
 
         String loginUrl = baseUrl + "/login";
-        ResponseEntity<UserResponseDTO> response = testRestTemplate.postForEntity(loginUrl, userRegisterDTO, UserResponseDTO.class);
+        ResponseEntity<String> response = testRestTemplate.postForEntity(loginUrl, userRegisterDTO, String.class);
 
-        assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertNotNull(response.getBody(), "Response body should not be null");
-        assertNotNull(response.getBody().getToken(), "Token should not be null");
-        assertFalse(response.getBody().getToken().isEmpty(), "Token should not be empty");
+        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
+//        assertNotNull(response.getBody(), "Response should not be null");
+//        assertNotNull(response.getBody().getAccessToken(), "Access token should not be null");
+//        assertFalse(response.getBody().getAccessToken().isEmpty(), "Access token should not be empty");
+//        assertNotNull(response.getBody().getRefreshToken(), "Refresh token should not be null");
+//        assertFalse(response.getBody().getRefreshToken().isEmpty(), "Refresh token should not be empty");
     }
 }

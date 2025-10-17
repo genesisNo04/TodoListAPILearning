@@ -15,7 +15,8 @@ public class RefreshTokenService {
 
     private final RefreshTokenRepository refreshTokenRepository;
 
-    private final long refreshTokenDurations = 7 * 24 * 60 * 60 * 100;
+//    private final long refreshTokenDurations = 7 * 24 * 60 * 60 * 100;
+    private final long refreshTokenDurations = 3 * 60 * 1000;
 
     @Autowired
     public RefreshTokenService(RefreshTokenRepository refreshTokenRepository) {

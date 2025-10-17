@@ -30,7 +30,7 @@ public class RateLimitService {
         //capacity: how many token can be in the bucket
         //refill: how token refill over time
         //type of bandwith: classic -> simple, fixed bucket
-        Bandwidth limit = Bandwidth.classic(1, Refill.greedy(1, Duration.ofSeconds(15)));
+        Bandwidth limit = Bandwidth.classic(10, Refill.greedy(10, Duration.ofSeconds(15)));
         //Bucket keep track of how many tokens are left
         //Create new bucket with builder pattern, allow programmer to config the object step by step instead of using complicated constructor
         //Useful for obj that has many optional parameter

@@ -13,7 +13,7 @@ import java.util.Map;
 public class JwtUtil {
 
     private static final String SECRET_KEY = "";
-    private static final long EXPIRATION_TIME = 1000 * 60 * 60;
+    private static final long EXPIRATION_TIME = 1000 * 60 * 2;
 
     //SECRET_KEY.getBytes() change the key into array of bytes
     //Keys.hmacShaKeyFor this wrap the byte arrayy as a Secret key that can be used with HMAC-SHA(HS256)

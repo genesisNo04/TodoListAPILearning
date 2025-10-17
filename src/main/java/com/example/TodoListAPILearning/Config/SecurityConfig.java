@@ -30,7 +30,7 @@ public class SecurityConfig {
                 .formLogin(form -> form.disable()) // disable default form login
                 .httpBasic(basic -> basic.disable()) // disable HTTP Basic auth
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/v1/user/register", "/v1/user/login").permitAll()
+                        .requestMatchers("/v1/user/register", "/v1/user/login", "/v1/user/refresh").permitAll()
                         .anyRequest().authenticated()
                 )
                 //Tell spring that the session should be stateless because we are using JWT, so the token is sent for every request
